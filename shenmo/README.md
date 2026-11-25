@@ -1,12 +1,7 @@
 # 神墨 AI STORE
 
-- index.html：完整离线展示版，内嵌图片、样式和交互。下载后用桌面浏览器打开，无需服务器；仅供浏览，不处理账号和订单。
-- store/：商城完整源码，包括后台与数据库结构、商品公开目录，依赖 Cloudflare Workers/D1 运行环境。
+- [项目主页](https://luocenter306-alt.github.io/LUO-center/)和[在线演示](https://luocenter306-alt.github.io/LUO-center/shenmo.html)由 GitHub Pages 提供。
+- [docs/shenmo.html](../docs/shenmo.html) 是唯一的独立 HTML 展示快照。将它单独保存后，用浏览器打开即可离线浏览。原来的 `shenmo/index.html` 在完整仓库中会跳转到该文件。
+- [store/](store/) 包含商城源码、数据库结构和公开目录。构建、数据库迁移与运行方式见[商城文档](store/README.md)。
 
-上传未包含运行时数据库、用户和订单数据、环境密钥、Git 历史或 node_modules。展示页是商品信息快照，修改后台不会自动更新本文件。
-
-若需要 GitHub Pages，可在仓库 Settings → Pages 中选用存放本文件的分支及根目录；是否可用取决于账号、仓库权限和网络访问。
-
-## 商品布局管理
-完整商城使用超级管理员登录后，在「网站装修 → 商品布局」调整桌面/手机列数、图片大小、卡片间距及简介/价格显示，并实时预览。下方可调整商品顺序与显隐。GitHub Pages 为导出的展示快照，不运行管理后台。
-
+超级管理员可以在全栈商城的「网站装修 → 商品布局」中调整桌面和手机布局、卡片间距、简介与价格显隐，以及商品的排序与可见性。后台更新后，Pages 的展示快照需要重新导出才会更新。

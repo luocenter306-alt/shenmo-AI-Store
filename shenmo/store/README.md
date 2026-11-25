@@ -4,7 +4,7 @@
 
 ## 技术与运行
 
-Node.js 22.13+，React 19，Vinext，Cloudflare Workers，D1 / SQLite，Drizzle。
+在 `shenmo/store` 目录执行以下命令。需要 Node.js 22.13+ 和 npm。商城使用 React 19、Vinext、Cloudflare Workers、D1（SQLite）和 Drizzle。
 
 ```sh
 npm ci
@@ -12,27 +12,38 @@ npm run build
 node --import ./scripts/sites-env.mjs ./node_modules/wrangler/bin/wrangler.js d1 execute DB --local --config dist/server/wrangler.json --persist-to .wrangler/state --file drizzle/0000_whole_newton_destine.sql
 node --import ./scripts/sites-env.mjs ./node_modules/wrangler/bin/wrangler.js d1 execute DB --local --config dist/server/wrangler.json --persist-to .wrangler/state --file drizzle/0001_business_constraints.sql
 node --import ./scripts/sites-env.mjs ./node_modules/wrangler/bin/wrangler.js d1 execute DB --local --config dist/server/wrangler.json --persist-to .wrangler/state --file drizzle/0002_romantic_fat_cobra.sql
-npm run dev
+node --import ./scripts/sites-env.mjs ./node_modules/wrangler/bin/wrangler.js d1 execute DB --local --config dist/server/wrangler.json --persist-to .wrangler/state --file drizzle/0003_amused_energizer.sql
+npm start
 ```
 
-迁移只对新的本地数据库执行一次，已有数据库仅应用尚未执行的迁移。部署时 Sites 应用云端迁移。本地数据不上传。
+打开 `http://127.0.0.1:8787/` 查看构建后的商城。开发时可用 `npm run dev`，默认端口为 `5173`。四个迁移命令按顺序对新建的本地数据库执行一次。已有数据库只需执行尚未应用的迁移。本地数据库保存在 `.wrangler/state`。
 
-本地预览默认 http://127.0.0.1:5173 。站内支持邮箱或手机号 + 密码注册/登录，密码至少 10 位。手机号默认支持中国大陆 11 位号码，国际号码需带 + 国家区号。当前是账号密码模式，不发送短信或邮箱验证码，也不将注册本身视为联系方式所有权验证。
+站内支持邮箱或手机号加密码注册和登录，密码至少 10 位。手机号默认支持中国大陆 11 位号码，国际号码需带 `+` 和国家区号。当前是账号密码模式，不发送短信或邮箱验证码，也不将注册视为联系方式所有权验证。
 
-Sites 的外层私有访问控制保持不变；它与站内账号分开。线上平台防护曾返回 Cloudflare 403，更新站内登录无法自行解除平台拦截。不要将开发服务器直接暴露到公网。
+Sites 外层访问控制独立于站内账号。若托管平台返回 403，请在托管环境检查站点访问权限。
 
 ## 环境配置
 
 在 Sites 的运行环境中配置：
 
-- ADMIN_EMAIL：3061211942@qq.com。该账号首次注册保留给站点所有者，避免被他人抢注管理员。
-- ADMIN_OWNER_EMAIL：私有站点所有者已验证的平台邮箱，已通过 secret 配置。所有者进入私有站点后，使用 ADMIN_EMAIL 完成站内注册并自行设置密码，系统将保留管理员角色。已有同邮箱历史用户仅在通过所有者证明时迁移；不会仅凭输入邮箱授予权限。
+- `ADMIN_EMAIL` 用于指定保留给所有者的站内管理员邮箱。
+- `ADMIN_OWNER_EMAIL` 用于指定私有站点所有者已验证的平台邮箱。所有者通过外层身份验证后，使用 `ADMIN_EMAIL` 完成站内注册并自行设置密码。已有同邮箱账号也需要通过所有者证明才能授予管理员角色。
 - ENABLE_PLATFORM_LOGIN：默认关闭，仅业务测试明确启用旧平台身份适配。正式站内账号依赖 HttpOnly 会话，不依赖输入的角色。
 - LICENSE_KEY：生产加密密钥，已在托管环境设置为 secret。不可随意轮换；已有卡密依赖原密钥解密。
 - PAYMENT_WEBHOOK_SECRET：接入支付网关时配置。当前未配置，回调拒绝执行。
 - ALLOW_TEST_PAYMENTS：仅本机测试可设为 true，且必须为 localhost / 127.0.0.1 域名。托管环境没有开启。
 
 本地环境使用未跟踪的 .dev.vars；仅填写你自己的开发值，不复制生产密钥。
+
+## 全栈部署
+
+GitHub Pages 发布仓库的 `docs/`，用于公开项目介绍和离线快照。完整商城需要支持 Cloudflare Workers 和 D1 的托管环境。
+
+1. 使用 `shenmo/store` 作为应用目录并运行 `npm ci`、`npm run build`。构建产物在 `dist/server/`（Worker 与生成的 Wrangler 配置）和 `dist/client/`（静态资源）。
+2. 在 Sites 托管环境中为应用绑定 D1，绑定名为 `DB`，并应用 `drizzle/` 下四个 SQL 迁移。如果直接部署到 Cloudflare Workers，在部署配置中填写实际的 D1 数据库名称和 ID，保留 `DB` 绑定及客户端资源路径。Vite 生成的占位数据库 ID 仅供本地使用。
+3. 在托管环境配置上节所需的运行时变量及密钥。保持测试支付关闭，然后验证首页、`/api/bootstrap`、数据库读取和站内登录。
+
+已有 D1 数据库只需应用尚未执行的迁移。数据库应使用独立的生产绑定。[Cloudflare D1 迁移文档](https://developers.cloudflare.com/d1/reference/migrations/)
 
 ## 当前可用
 
@@ -68,9 +79,7 @@ node tests/business.mjs
 npm run build
 ```
 
-业务测试使用真实 SQLite 执行迁移与 SQL，D1 batch 使用事务模拟：93 个 API 请求断言，覆盖鉴权/归属、审核拦截、卡密加密与去重、库存独占、支付幂等、退款防重、提现余额不足、技术员状态机、工单、代理价格、邮箱/手机号注册登录、会话撤销与过期、管理员账号防抢注和 CSRF。不能替代真实支付渠道以及云端负载测试。
-
-桌面 1440px、手机 390px 已通过浏览器检查：首页与商品列表没有横向溢出，未出现 JS 页面错误；截图随交付提供。
+业务测试在真实 SQLite 中运行迁移和 SQL，以事务模拟 D1 批处理。断言覆盖鉴权与归属、商品审核、库存、支付幂等、退款、安装流程、售后、供货目录导入和网站设置。测试输出会列出实际通过的 API 断言数。
 
 ## 本次交互与视觉更新
 
@@ -88,9 +97,7 @@ npm run build
 
 重复同步通过源站编号关联，只更新来源名称、来源价、图片、库存展示和同步时间；保留本站价格、文案及审核状态。网络完整同步后才标记未再出现的来源商品；文件导入不将未包含的商品视为下架。失败时保留原数据并记录日志；同步互斥锁有效期 120 秒。
 
-同步按钮通过服务器请求固定来源域名；本机实测工作进程外联失败时会显示错误，仍可导入随附的 Prome-商品目录.json 更新。公网托管环境是否能实时访问需要独立验证。不要把一次快照视为持续实时库存。未实现官方供货 API、自动下单、扣款、卡密获取或自动售后。
-
-网站现已修正管理员登录跳转与右上角身份入口。本地用户邮箱已按所有者要求从 3061211952@qq.com 更正为 3061211942@qq.com，并保留原密码和用户数据、授予 SUPER_ADMIN；该本地账号数据不会随着源码发布迁移到生产数据库。
+同步按钮通过服务器请求固定来源域名。外联失败时会显示错误，也可在后台导入仓库中的 [`db/prome-catalog-snapshot.json`](db/prome-catalog-snapshot.json)。托管环境的外联及实时同步需要独立验证。快照记录采集时的供货信息。官方供货 API、自动下单、扣款、卡密获取及自动售后尚未接入。
 
 本机实时读取来源受网络限制时，可在 PowerShell 从项目目录运行 `./scripts/fetch-prome-catalog.ps1` 获取更新目录，随后在后台导入生成的 work/prome-catalog.json。此脚本只读取公开分类与商品，不登录上游、不下单、不付款。
 
@@ -103,5 +110,3 @@ npm run build
 后台“公告管理”可修改标题、正文与启用状态。保存产生新版本，访客再次进入会重新提醒。弹窗支持本次关闭、对本版本不再提醒、悬浮入口再次查看、键盘关闭与焦点限制。正文为纯文本，空行分段，不执行 HTML。默认内容明确为用户提供的 Prome 上游公告，并区分上游的联系方式、代理价格、退款承诺与神墨自身服务。
 
 首页默认突出远程安装，3D 展示和默认推荐均为安装服务；购买提醒比较官方账号、API 与本地模型，并说明安装不等于会员充值。
-
-验证：node tests/business.mjs（116 个 API 请求断言及供货目录检查）、TypeScript 检查、生产构建，及 Edge 桌面/390px 手机浏览器交互检查。线上入口仍保留原有 Sites 访问权限，发布不更改平台访问控制。
